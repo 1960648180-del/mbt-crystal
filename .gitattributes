@@ -1,0 +1,12 @@
+# 统一换行符，避免 Windows/macOS/Linux 之间来回改行尾造成无意义的 diff
+* text=auto
+
+# 源码和文档一律用 LF
+*.mbt   text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.toml  text eol=lf
+*.cif   text eol=lf
+
+# 许可证原文保持原样，不要被 git 改写行尾
+LICENSE text eol=lf

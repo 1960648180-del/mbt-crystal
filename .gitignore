@@ -1,0 +1,14 @@
+# ── MoonBit 构建产物（都可由源码重新生成，不要提交）──
+_build/
+
+# ── 依赖缓存 ──
+# 克隆仓库后执行 `moon install` 即可恢复（版本记录在 moon.mod 里）
+.mooncakes/
+
+# ── 编辑器 / 系统 ──
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+Desktop.ini
+.DS_Store

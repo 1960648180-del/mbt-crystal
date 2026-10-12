@@ -1,0 +1,11 @@
+// 这是从 IvanAXu/BioSeqs@0.1.9 原样复制过来的单文件（Apache-2.0）。
+// 用途见 crystal.mbt 顶部的注释。
+// 之所以 vendor 单文件而不是整体依赖，是因为 BioSeqs 整包有 6 个文件
+// 在 MoonBit 0.1.20260920 工具链下编译不过（mofa2 / statistics / slingshot /
+// singscore / hmmcopy / factoextra），而 crystal.mbt 本身是干净的。
+//
+// 注：本 moon.pkg 不是复制来的，是我们为 vendor 包新写的。
+// 只保留实际用到的 core/math，避免 unused_package 警告。
+import {
+  "moonbitlang/core/math",
+}

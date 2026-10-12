@@ -1,0 +1,18 @@
+// 包配置：声明要用到的库，并把本包标记为"可执行程序"
+//   fs     -> 读文件（MoonBit 标准库本身没有文件读写，要用 moonbitlang/x/fs）
+//   string -> parse_double（把字符串转成小数）
+//   math   -> cos（余弦函数）
+//   double -> round（四舍五入，只为打印好看）
+//   env    -> args（拿到命令行参数）
+//   bio    -> vendor/crystal：分词这个"管道活"复用 BioSeqs 的实现
+//             （它引号感知，比我们手动切字段干净；详见 main.mbt 顶部说明）
+import {
+  "moonbitlang/x/fs",
+  "moonbitlang/core/string",
+  "moonbitlang/core/math",
+  "moonbitlang/core/double",
+  "moonbitlang/core/env",
+  "user/mbt-crystal/vendor/crystal" @bio,
+}
+
+pkgtype(kind: "executable")
