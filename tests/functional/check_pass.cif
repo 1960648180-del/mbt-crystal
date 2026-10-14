@@ -1,0 +1,28 @@
+# 功能用例：化学式自检 —— 应当【通过】
+# 解析出的组成是 Ga4 O6（10 个原子），CIF 自己写的是 'Ga2 O3'
+# 手算配比：4/2 = 2，6/3 = 2 -> 两个比值相等 -> 记为通过，不应报警告
+# 现实类比：CIF 写的是"一个分子的比例"，而晶胞里有 2 个分子
+data_check_pass
+_cell_length_a   5.0
+_cell_length_b   5.0
+_cell_length_c   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0
+_chemical_formula_sum   'Ga2 O3'
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Ga1  Ga  0.00  0.00  0.00
+Ga2  Ga  0.50  0.50  0.50
+Ga3  Ga  0.25  0.25  0.25
+Ga4  Ga  0.75  0.75  0.75
+O1   O   0.10  0.10  0.10
+O2   O   0.20  0.20  0.20
+O3   O   0.30  0.30  0.30
+O4   O   0.40  0.40  0.40
+O5   O   0.60  0.60  0.60
+O6   O   0.70  0.70  0.70

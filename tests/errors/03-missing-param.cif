@@ -1,0 +1,8 @@
+# 错误用例 03：缺一个晶格参数（少了 _cell_length_c）
+# 期望：警告「文件里找不到晶格参数 _cell_length_c」，该数据块跳过，程序不崩
+data_x
+_cell_length_a   5.0
+_cell_length_b   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0

@@ -1,0 +1,39 @@
+# 功能用例：Windows 风格 CRLF 换行 + 真实 Materials Project 导出的 13 列原子表
+# 测试点：
+#   1. CRLF 换行能不能正确处理（\r 不能被当成内容）
+#   2. 13 列原子表（label 不是第一列，type_symbol 才是）能不能按列名找对列
+#   ⚠️ 注意：每一行的字段数必须和表头数（13）完全一致，多一个少一个都会错位！
+# 结构：金刚石型硅，立方 a=5.431 -> V = 5.431^3 = 160.191478
+data_Si_crlf
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.431
+_cell_length_b   5.431
+_cell_length_c   5.431
+_cell_angle_alpha   90.0
+_cell_angle_beta    90.0
+_cell_angle_gamma   90.0
+loop_
+_symmetry_equiv_pos_as_xyz
+'x, y, z'
+loop_
+_atom_site_type_symbol
+_atom_site_label
+_atom_site_symmetry_multiplicity
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_U_iso_or_equiv
+_atom_site_adp_type
+_atom_site_occupancy
+_atom_site_calc_flag
+_atom_site_refinement_flags
+_atom_site_disorder_assembly
+_atom_site_disorder_group
+Si  Si0  1  0.00000000  0.00000000  0.00000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si1  1  0.00000000  0.50000000  0.50000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si2  1  0.50000000  0.00000000  0.50000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si3  1  0.50000000  0.50000000  0.00000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si4  1  0.25000000  0.25000000  0.25000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si5  1  0.25000000  0.75000000  0.75000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si6  1  0.75000000  0.25000000  0.75000000  0.00000000  Uiso  1.0  1.0  .  .  .
+Si  Si7  1  0.75000000  0.75000000  0.25000000  0.00000000  Uiso  1.0  1.0  .  .  .

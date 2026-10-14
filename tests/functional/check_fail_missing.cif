@@ -1,0 +1,23 @@
+# 功能用例：化学式自检 —— 应当【报警告：缺元素】
+# 解析出的组成是 C2 N2 O2（6 个原子），但 CIF 自己写的是 'C2 H2 N2 O2'
+# CIF 声称含 H，而解析出来的原子里一个 H 都没有 -> 报警告
+data_check_missing
+_cell_length_a   5.0
+_cell_length_b   5.0
+_cell_length_c   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0
+_chemical_formula_sum   'C2 H2 N2 O2'
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+C1   C   0.00  0.00  0.00
+C2   C   0.50  0.50  0.50
+N1   N   0.25  0.25  0.25
+N2   N   0.75  0.75  0.75
+O1   O   0.10  0.20  0.30
+O2   O   0.60  0.70  0.80

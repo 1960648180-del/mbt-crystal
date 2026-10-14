@@ -1,0 +1,9 @@
+# 错误用例 05：CIF 用 "?" 表示"这项我不知道"
+# 期望：警告「数值缺失（文件里写的是 "?"）」，该数据块跳过，程序不崩
+data_x
+_cell_length_a   5.0
+_cell_length_b   ?
+_cell_length_c   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0

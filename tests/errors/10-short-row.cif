@@ -1,0 +1,17 @@
+# 错误用例 10：数据行的字段数（2 个）比表头数（4 个）少
+# 期望：警告「原子位点表只有表头，没有一行完整的数据（每行列数要和表头对得上）」
+#       （不要说成"没有找到原子位点表" —— 表在，只是那行不完整）
+# 说明：借来的分词器要求"行字段数 == 表头数"，不等就丢弃该行
+data_x
+_cell_length_a   5.0
+_cell_length_b   5.0
+_cell_length_c   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0
+loop_
+_atom_site_label
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Si1 0.1

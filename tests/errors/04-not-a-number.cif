@@ -1,0 +1,9 @@
+# 错误用例 04：晶格参数写成了非数字
+# 期望：警告「"abc" 不是合法数字」，该数据块跳过，程序不崩
+data_x
+_cell_length_a   abc
+_cell_length_b   5.0
+_cell_length_c   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0

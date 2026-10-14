@@ -1,0 +1,16 @@
+# 功能用例：故意不写 data_ 行（手写 CIF 常见错误）
+# 测试点：程序应当宽容处理 —— 补一行 data_ 再解析，并记一条警告
+# 期望：仍然解析出 1 个结构，V=64，1 个原子，外加 1 条警告
+_cell_length_a   4.0
+_cell_length_b   4.0
+_cell_length_c   4.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Q1  Q  0.0  0.0  0.0

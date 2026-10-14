@@ -1,0 +1,21 @@
+# 功能用例：与 sym_demo.cif 内容相同，但换用另一个关键字写法
+# 测试点：_space_group_symop_operation_xyz 这个别名关键字能不能被识别
+# 期望：结果应当与 sym_demo.cif 完全一致
+data_symmetry_alias
+_cell_length_a   4.0
+_cell_length_b   4.0
+_cell_length_c   4.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  100.0
+_cell_angle_gamma 90.0
+loop_
+_space_group_symop_operation_xyz
+'x, y, z'
+'-x, y, -z'
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Na1  Na  0.25  0.0  0.10

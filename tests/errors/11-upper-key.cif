@@ -1,0 +1,12 @@
+# 错误用例 11：CIF 关键字写成全大写
+# 说明：按 CIF 规范，数据名本来应当"大小写不敏感"，但我们的实现（以及借来的分词器）
+#       都只做大小写敏感的精确匹配 -> 找不到 _cell_length_a
+# 期望：警告「文件里找不到晶格参数 _cell_length_a」，程序不崩
+# 这算是"双方共享的同一个局限"，已记入 THIRD_PARTY_NOTICES.md
+data_x
+_CELL_LENGTH_A   5.0
+_CELL_LENGTH_B   5.0
+_CELL_LENGTH_C   5.0
+_CELL_ANGLE_ALPHA 90.0
+_CELL_ANGLE_BETA  90.0
+_CELL_ANGLE_GAMMA 90.0

@@ -1,0 +1,16 @@
+# 错误用例 09：原子表缺了一列（少了 _atom_site_fract_z）
+# 期望：警告要明确说「原子位点表缺列：必须有 _atom_site_fract_x / _y / _z」
+#       （不要说成"没有找到原子位点表" —— 那是误导，表其实找到了）
+data_x
+_cell_length_a   5.0
+_cell_length_b   5.0
+_cell_length_c   5.0
+_cell_angle_alpha 90.0
+_cell_angle_beta  90.0
+_cell_angle_gamma 90.0
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+Si1  Si  0.1  0.2

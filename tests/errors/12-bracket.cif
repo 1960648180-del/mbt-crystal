@@ -1,0 +1,13 @@
+# 错误用例 12：误差括号写坏了
+#   _cell_length_a 5.43(2   -> 括号没闭合
+#   _cell_length_b 5.43()   -> 括号里是空的
+# 说明：CIF 用 "5.4310(2)" 表示 5.4310 ± 0.0002，我们只取括号前面的数
+#       （pymatgen 的 str2float 也是直接删掉括号，这里保持一致）
+# 期望：把 a 和 b 都读成 5.43，不报错；由于这个文件没有原子表，会警告"没有找到原子位点表"
+data_x
+_cell_length_a   5.43(2
+_cell_length_b   5.43()
+_cell_length_c 5.0
+_cell_angle_alpha 90
+_cell_angle_beta 90
+_cell_angle_gamma 90
