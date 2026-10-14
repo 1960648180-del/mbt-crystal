@@ -140,9 +140,10 @@ def group1_real_data():
     ref_dir = os.path.join(ROOT, "mp-reference")
     if os.path.isdir(ref_dir):
         files += [os.path.join(ref_dir, n) for n in sorted(os.listdir(ref_dir)) if n.endswith(".cif")]
-    # 带真实对称操作的高对称用例（也是真实 MP 数据，自带官方 _cell_volume）
+    # 带真实对称操作的高对称用例 + 只给空间群编号的用例
+    # （都是真实 MP 数据，自带官方 _cell_volume）
     files += [os.path.join(FUNCTIONAL, n) for n in sorted(os.listdir(FUNCTIONAL))
-              if n.startswith("symop-") and n.endswith(".cif")]
+              if (n.startswith("symop-") or n.startswith("spacegroup-")) and n.endswith(".cif")]
 
     for path in files:
         name = os.path.basename(path)
@@ -162,8 +163,12 @@ def group1_real_data():
             ok(f"{name:24s} V={mine[0]:<14} 官方={ref:<14} 警告={w}")
         else:
             ng(f"{name:24s} V={mine[0]}", f"官方={ref}  差={abs(mine[0] - ref):.2e}")
-        if w != 0:
+        if w != 0 and not name.startswith("spacegroup-"):
             ng(f"{name}  警告数应为 0", f"实际 {w}")
+        # 说明：spacegroup-* 的文件里没写对称操作，程序会查表并打印一条提示，
+        #       所以这类文件恰好应该有 1 条警告（且只应该是那一条）。
+        if name.startswith("spacegroup-") and w != 1:
+            ng(f"{name}  警告数应为 1（查表提示）", f"实际 {w}")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -172,7 +177,7 @@ def group1_real_data():
 def group2_pymatgen():
     print("\n" + "=" * 78)
     print("第 2 组：对称展开（期望值 = pymatgen 独立计算）")
-    print("  —— 含带真实对称操作的高对称用例（8 / 12 / 96 / 192 条），这才是真正的考验")
+    print("  —— 含真实高对称用例（8 / 12 / 96 / 192 条操作）与只给空间群编号的用例")
     print("=" * 78)
     try:
         from pymatgen.io.cif import CifParser
@@ -183,7 +188,7 @@ def group2_pymatgen():
     import warnings as _w
     cases = ["sym_demo.cif", "symmetry.cif", "frac_demo.cif"]
     cases += sorted(n for n in os.listdir(FUNCTIONAL)
-                    if n.startswith("symop-") and n.endswith(".cif"))
+                    if (n.startswith("symop-") or n.startswith("spacegroup-")) and n.endswith(".cif"))
     for name in cases:
         path = os.path.join(FUNCTIONAL, name)
         text = run_cli(path)

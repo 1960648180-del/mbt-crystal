@@ -64,6 +64,7 @@ moon run . -- tests/functional/frac_demo.cif raise
 | `symop-ga2o3-c2m.cif` | 单斜 C2/m，8 条（C 面心 + 螺旋轴） | V=211.467526；不对称单元 5 个 → 展开 **20** 个原子；组成 `Ga8 O12`；0 警告 |
 | `symop-sic-f43m.cif` | 立方 F-43m，96 条 | V=82.53977；不对称单元 2 个 → 展开 **8** 个原子；组成 `Si4 C4`；0 警告 |
 | `symop-diamond-fd3m.cif` | 金刚石型 Fd-3m，**192 条**（最极端） | V=45.146352；不对称单元 1 个 → 展开 **8** 个原子；组成 `C8`；0 警告 |
+| `spacegroup-gan-186.cif` | **只给空间群编号 186，不列操作** | V=45.728323；不对称单元 2 个 → 展开 **4** 个原子；组成 `Ga2 N2`；**1 警告**（提示“改按编号查表”） |
 
 > **`symop-*` 这四个文件是怎么来的**：Materials Project 导出的 CIF 全部是 `P 1`（只有 1 条
 > `'x, y, z'`），也就是说在补上这四个文件之前，**"多条对称操作"从来没被真实验证过**。
@@ -126,5 +127,6 @@ Get-Content $p | Where-Object { $_.StartsWith("Si") } | ForEach-Object { ($_ -sp
 | `verify.py` | **一键验证**（上面那个）。跑完全部检查并给出总结 |
 | `verify_with_pymatgen.py` | 只做对称展开的对照，把 pymatgen 的展开结果打印出来给人看 |
 | `make_symmetry_cases.py` | **生成 `symop-*` 高对称用例**：用 spglib 把真实结构的对称性找回来，写出带完整对称操作的 CIF |
+| `gen_spacegroups.py` | **生成空间群查找表** `spacegroup_table.mbt`：从 spglib 数据库取全部 230 个空间群的对称操作（支持 `--dry-run` 只看统计） |
 
-前两个需要 pymatgen：`pip install pymatgen`（`make_symmetry_cases.py` 还需要 spglib）
+前两个需要 pymatgen：`pip install pymatgen`（`make_symmetry_cases.py` 与 `gen_spacegroups.py` 还需要 spglib）

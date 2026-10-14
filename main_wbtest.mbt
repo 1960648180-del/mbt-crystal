@@ -308,3 +308,81 @@ test "to_radian 与 cell_metric 配合：六方格子的根号项" {
   // 手算：3.18893² × 5.19236 × √0.75 ≈ 45.728
   assert_true(approx(cell_volume(lat), 45.7283, 1.0e-3))
 }
+
+/// ---------------------------------------------------------------
+/// 六、空间群编号查表
+///
+/// 表在 spacegroup_table.mbt，由 tests/tools/gen_spacegroups.py 从 spglib
+/// 的空间群数据库自动生成。下面这几条测试不看具体数值，而是检查**表的自洽性** ——
+/// 这类检查能拓住脚本生成时对不上的格式。
+/// ---------------------------------------------------------------
+
+test "spacegroup_ops：230 个国际编号全部有数据" {
+  let mut missing = 0
+  let mut i = 1
+  while i <= 230 {
+    if spacegroup_ops(i).length() == 0 {
+      missing = missing + 1
+    }
+    i = i + 1
+  }
+  assert_eq(missing, 0)
+}
+
+test "spacegroup_ops：几组已知的操作条数" {
+  assert_eq(spacegroup_ops(1).length(), 1) // P1，只有恒等操作
+  assert_eq(spacegroup_ops(2).length(), 2) // P-1，加倒反中心
+  assert_eq(spacegroup_ops(186).length(), 12) // P6_3mc（GaN）
+  assert_eq(spacegroup_ops(225).length(), 192) // Fm-3m
+  assert_eq(spacegroup_ops(227).length(), 192) // Fd-3m（金刚石）
+}
+
+test "spacegroup_ops：未知编号返回空数组" {
+  assert_eq(spacegroup_ops(0).length(), 0)
+  assert_eq(spacegroup_ops(231).length(), 0)
+}
+
+test "spacegroup_ops：每条操作都必须含恒等操作 (x,y,z)" {
+  // 群论上的硬要求：对称操作集合必然包含恒等操作。
+  // 哪张表缺了它，说明表本身生成错了。
+  let mut bad = 0
+  let mut n = 1
+  while n <= 230 {
+    let mut has_identity = false
+    for text in spacegroup_ops(n) {
+      if text == "x,y,z" {
+        has_identity = true
+      }
+    }
+    if !has_identity {
+      bad = bad + 1
+    }
+    n = n + 1
+  }
+  assert_eq(bad, 0)
+}
+
+test "spacegroup_ops：全部 230 个群的每一条操作都能被 parse_symop 解析" {
+  // 对生成表最强的一条检验：表里只要有一个字符串格式不对，这里就会挂。
+  // 同时也验证了两代代码能接上（生成的表 → 已有的解析器）。
+  let mut bad = 0
+  let mut wrong_parts = 0
+  let mut total = 0
+  let mut n = 1
+  while n <= 230 {
+    for text in spacegroup_ops(n) {
+      total = total + 1
+      let parsed : SymOp? = Some(parse_symop(text)) catch {
+        _ => None
+      }
+      match parsed {
+        Some(op) => if op.parts.length() != 3 { wrong_parts = wrong_parts + 1 }
+        None => bad = bad + 1
+      }
+    }
+    n = n + 1
+  }
+  assert_eq(bad, 0)
+  assert_eq(wrong_parts, 0)
+  assert_true(total > 4000) // 全表应当有四千多条操作
+}
