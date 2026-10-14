@@ -60,6 +60,18 @@ moon run . -- tests/functional/frac_demo.cif raise
 | `check_fail_ratio.cif` | 化学式自检**应当报警**：解析出 Ga₄O₄，比值 4/2 = 2 而 4/3 = 1.33，差 0.67 | 1 块；V=125；8 个原子；组成 `Ga4 O4`；**1 警告**（配比不一致） |
 | `check_fail_missing.cif` | 化学式自检**应当报警**：CIF 声称含 H，解析结果里一个 H 都没有 | 1 块；V=125；6 个原子；组成 `C2 N2 O2`；**1 警告**（缺元素） |
 | `mp-crlf.cif` | **CRLF 换行** + 真实 MP 导出的 **13 列**原子表（label 不是第一列） | 1 块；V=160.191478（= 5.431³）；**8** 个原子；组成 `Si8`；0 警告 |
+| `symop-gan-p63mc.cif` | **真实的多条对称操作**：P6₃mc，12 条（含 `z+1/2` 平移和 6₃ 螺旋轴） | 1 块；V=45.728323；不对称单元 2 个 → 展开 **4** 个原子；组成 `Ga2 N2`；0 警告 |
+| `symop-ga2o3-c2m.cif` | 单斜 C2/m，8 条（C 面心 + 螺旋轴） | V=211.467526；不对称单元 5 个 → 展开 **20** 个原子；组成 `Ga8 O12`；0 警告 |
+| `symop-sic-f43m.cif` | 立方 F-43m，96 条 | V=82.53977；不对称单元 2 个 → 展开 **8** 个原子；组成 `Si4 C4`；0 警告 |
+| `symop-diamond-fd3m.cif` | 金刚石型 Fd-3m，**192 条**（最极端） | V=45.146352；不对称单元 1 个 → 展开 **8** 个原子；组成 `C8`；0 警告 |
+
+> **`symop-*` 这四个文件是怎么来的**：Materials Project 导出的 CIF 全部是 `P 1`（只有 1 条
+> `'x, y, z'`），也就是说在补上这四个文件之前，**"多条对称操作"从来没被真实验证过**。
+> 它们是用 `tests/tools/make_symmetry_cases.py` 生成的：拿真实的 MP 结构，用 spglib 把对称性找回来，
+> 再写出带完整显式对称操作的 CIF。**产物 = 真实材料 + 真实对称操作。**
+>
+> **金刚石那条是真正的考验**：192 条操作作用在 1 个原子上，正确结果是 **8 个不同位置**
+> （其余 184 个全是重复）。我们的周期性去重逻辑必须把它压成 8，多一个少一个都是错的。
 
 > 📌 `mp-crlf.cif` 特意保持 **CRLF** 换行（见根目录 `.gitattributes` 里的例外声明），
 > 否则这个用例就失去意义了。
@@ -107,11 +119,12 @@ Get-Content $p | Where-Object { $_.StartsWith("Si") } | ForEach-Object { ($_ -sp
 
 ---
 
-## `tools/` —— 验证脚本
+## `tools/` —— 脚本
 
 | 脚本 | 作用 |
 |---|---|
-| `verify.py` | **一键验证**（上面那个）。跑完 27 项检查并给出总结 |
+| `verify.py` | **一键验证**（上面那个）。跑完全部检查并给出总结 |
 | `verify_with_pymatgen.py` | 只做对称展开的对照，把 pymatgen 的展开结果打印出来给人看 |
+| `make_symmetry_cases.py` | **生成 `symop-*` 高对称用例**：用 spglib 把真实结构的对称性找回来，写出带完整对称操作的 CIF |
 
-两个都需要 pymatgen：`pip install pymatgen`
+前两个需要 pymatgen：`pip install pymatgen`（`make_symmetry_cases.py` 还需要 spglib）

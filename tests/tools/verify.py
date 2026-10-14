@@ -140,6 +140,9 @@ def group1_real_data():
     ref_dir = os.path.join(ROOT, "mp-reference")
     if os.path.isdir(ref_dir):
         files += [os.path.join(ref_dir, n) for n in sorted(os.listdir(ref_dir)) if n.endswith(".cif")]
+    # 带真实对称操作的高对称用例（也是真实 MP 数据，自带官方 _cell_volume）
+    files += [os.path.join(FUNCTIONAL, n) for n in sorted(os.listdir(FUNCTIONAL))
+              if n.startswith("symop-") and n.endswith(".cif")]
 
     for path in files:
         name = os.path.basename(path)
@@ -169,6 +172,7 @@ def group1_real_data():
 def group2_pymatgen():
     print("\n" + "=" * 78)
     print("第 2 组：对称展开（期望值 = pymatgen 独立计算）")
+    print("  —— 含带真实对称操作的高对称用例（8 / 12 / 96 / 192 条），这才是真正的考验")
     print("=" * 78)
     try:
         from pymatgen.io.cif import CifParser
@@ -177,7 +181,10 @@ def group2_pymatgen():
         return
 
     import warnings as _w
-    for name in ["sym_demo.cif", "symmetry.cif", "frac_demo.cif"]:
+    cases = ["sym_demo.cif", "symmetry.cif", "frac_demo.cif"]
+    cases += sorted(n for n in os.listdir(FUNCTIONAL)
+                    if n.startswith("symop-") and n.endswith(".cif"))
+    for name in cases:
         path = os.path.join(FUNCTIONAL, name)
         text = run_cli(path)
         if RE_CRASH.search(text):
