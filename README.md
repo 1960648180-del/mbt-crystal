@@ -44,14 +44,70 @@ CIF（Crystallographic Information File）是晶体学领域的标准文本格�
 
 ```powershell
 # 跑一个用例
-moon run . -- tests/functional/symop-diamond-fd3m.cif
+moon run cmd/main -- tests/functional/symop-diamond-fd3m.cif
 
 # 第二个参数是出错策略，默认 warn
-moon run . -- tests/functional/frac_demo.cif raise     # 出错就停
-moon run . -- tests/functional/frac_demo.cif ignore    # 出错静默跳过
+moon run cmd/main -- tests/functional/frac_demo.cif raise     # 出错就停
+moon run cmd/main -- tests/functional/frac_demo.cif ignore    # 出错静默跳过
 ```
 
 输出包括：晶格参数、晶胞体积、对称性统计、完整原子列表、以及所有警告。
+
+---
+
+## 当作库来用
+
+根包**就是库**（不是可执行程序），所以别的 MoonBit 项目可以直接依赖它：
+
+```
+// moon.mod —— 发布到 mooncakes.io 之后即可这样依赖
+import {
+  "1960648180-del/mbt-crystal@0.1.0",
+}
+```
+
+> 目前**尚未发布**到 mooncakes.io，所以在线安装还不行；
+> 想在本地当依赖用，可以看 `tests/tools/check_consumable.py` ——
+> 它就是用一个 `moon.work` 工作区把本库当普通依赖引入的完整例子。
+
+```moonbit
+// 你的代码
+let result : @lib.CifResult = @lib.parse_cif(text, @lib.Warn) catch {
+  Failure(msg) => {
+    println("解析失败：" + msg)
+    return
+  }
+}
+println(result.block_count) // 文件里有几个数据块
+for crystal in result.crystals {
+  println(crystal.atoms.length()) // 展开后的原子数
+  println(@lib.cell_volume(crystal.lattice))
+  println(
+    @lib.composition_to_string(@lib.composition_of_atoms(crystal.atoms)),
+  )
+}
+println(result.warnings.length()) // 警告不会让程序罢工，都攒在这儿
+```
+
+公开接口一共 **9 个函数 + 7 个类型**，完整清单见
+[`pkg.generated.mbti`](pkg.generated.mbti)（由 `moon info` 生成，也是别人
+`moon add` 之后看到的"门面"）：
+
+| 函数 | 用途 |
+|---|---|
+| `parse_cif(text, on_error)` | 解析 CIF 文本 → `CifResult`（结构 + 数据块数 + 警告） |
+| `cell_volume(lattice)` | 三斜通用晶胞体积 |
+| `expand_atoms(asym, ops)` | 用对称操作展开成完整晶胞（含周期性去重） |
+| `spacegroup_ops(number)` | 按国际编号查 230 个空间群的对称操作 |
+| `parse_symop(text)` | 解析一条操作文本（如 `"x, 1/2-y, 1/2+z"`） |
+| `composition_of_atoms` / `composition_to_string` | 组成统计与可读化 |
+| `cell_metric` / `to_radian` | 根号里那一坨（用来判断角度是否合法）/ 角度转弧度 |
+
+> **为什么这件事值得专门做**：MoonBit 里一个包只能是【库】或【可执行程序】
+> 二选一。早期整包标了 executable，结果**别的项目在语法上根本 import 不了它** ——
+> 解析得再准，别人也用不上。现在根包是库、CLI 挪到 `cmd/main`，两边都不牺牲。
+> `tests/tools/check_consumable.py` 会在**仓库外面**造一个消费者模块来守住这条线，
+> CI 每次都跑 —— 防的是哪天又悄悄退回成"只有自己能跑"。
 
 ---
 
@@ -71,6 +127,7 @@ moon run . -- tests/functional/frac_demo.cif ignore    # 出错静默跳过
 - 化学式自检：解析结果 vs CIF 自带的 `_chemical_formula_sum`
 - 警告收集 + 三种出错策略（`ignore` / `warn` / `raise`）
 - 非法晶格角度、缺失列、非数字等异常输入都能给出**明确提示且不崩溃**
+- **可作为库被依赖**：根包是库，公开 9 个函数 + 7 个类型；命令行程序在 `cmd/main` 单独成包
 
 **不支持（这一版的边界）**
 
@@ -86,17 +143,26 @@ moon run . -- tests/functional/frac_demo.cif ignore    # 出错静默跳过
 python tests\tools\verify.py
 ```
 
-一条命令跑完 **35 项检查**，逐条打印 `[OK]` / `[FAIL]`。
+一条命令跑完 **37 项检查**，逐条打印 `[OK]` / `[FAIL]`。
 
 **期望值的设计原则**：如果期望值由写代码的人自己写，他写错了测试也会通过 ——
 那不叫验证，叫自证。所以期望值全部来自**独立来源**：
 
 | 组 | 检查什么 | 期望值来源 |
 |---|---|---|
-| 1 | 12 个真实 Materials Project 文件 | **文件自带的官方 `_cell_volume` 字段** |
-| 2 | 7 个对称展开用例（含 192 条操作） | **pymatgen**（Materials Project 官方工具链） |
+| 1 | 13 个真实 Materials Project 文件 | **文件自带的官方 `_cell_volume` 字段** |
+| 2 | 8 个对称展开用例（含 192 条操作、含只给空间群编号的） | **pymatgen**（Materials Project 官方工具链） |
 | 3 | 4 个合成用例 | **从文件里的 `a` 自算**（立方 V = a³） |
 | 4 | 12 个错误用例 | 手写关键词 —— 只有这一组没办法（在测我们自己的报错文案） |
+
+另有一条线由单独的脚本守着 —— 「这个库真的能被外部依赖吗」：
+
+```powershell
+python tests\tools\check_consumable.py
+```
+
+它会在**仓库外面**（否则就不叫"外人"了）造一个小模块，`import` 本库、
+构造它的公开类型、调用 4 个公开接口并校对结果（5 项检查）。
 
 完整说明见 [`VERIFICATION.md`](VERIFICATION.md)。
 
@@ -105,13 +171,19 @@ python tests\tools\verify.py
 ## 目录结构
 
 ```
-main.mbt                     自研代码（980 行）：对称操作解析与展开、化学式自检、打印、主程序
-moon.mod / moon.pkg          模块与包配置
+moon.pkg                     根包配置 —— 本包是【库】，别人可以 import
+cif.mbt                      库主体：数据模型、几何、CIF 适配、对称操作解析与展开、公开 API
+spacegroup_table.mbt         空间群查找表（230 个群 / 4425 条操作，脚本生成，请勿手改）
+cif_wbtest.mbt               白盒单元测试（35 条，moon test 直接跑）
+cmd/main/                    命令行程序（单独成包，只负责读参数、读文件、打印）
+pkg.generated.mbti           对外公开接口清单（moon info 生成；上游生态惯例是提交进仓库）
 vendor/crystal/              复用的第三方分词层（见下）
-tests/functional/            功能用例（含 4 个高对称用例）
+tests/functional/            功能用例（含 4 个高对称用例 + 1 个只给空间群编号的用例）
 tests/errors/                错误用例
-tests/tools/verify.py        一键验证脚本
+tests/tools/verify.py        一键验证脚本（37 项）
+tests/tools/check_consumable.py  在仓库外验证"别人真的能用这个库"
 tests/tools/make_symmetry_cases.py  生成高对称用例
+tests/tools/gen_spacegroups.py      生成空间群查找表
 mp-149.cif, mp-reference/    真实 Materials Project 数据（用于交叉校验）
 docs/ECOSYSTEM-SCAN.md       生态检索证据
 VERIFICATION.md              验证报告
@@ -127,7 +199,8 @@ LICENSE                      Apache-2.0
 
 | 部分 | 行数 | 归属 |
 |---|---|---|
-| `main.mbt` | 980 | 自研（含对称展开全部逻辑、化学式自检、出错策略） |
+| `cif.mbt` + `spacegroup_table.mbt` | 1160 | 自研（对称展开全部逻辑、化学式自检、出错策略、对外 API） |
+| `cmd/main/` | 186 | 自研（命令行入口与排版；库本身不打印任何东西） |
 | `vendor/crystal/` | 1426 | 复用 `IvanAXu/BioSeqs` 的 `crystal.mbt` + `utils.mbt`（Apache-2.0） |
 
 **为什么是"复制文件"而不是普通依赖**：BioSeqs 整包在本项目使用的 MoonBit 工具链下

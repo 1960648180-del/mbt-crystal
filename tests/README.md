@@ -41,8 +41,8 @@ python tests/tools/verify.py
 
 ```powershell
 # 第二参数是出错策略，默认 warn
-moon run . -- tests/functional/sym_demo.cif
-moon run . -- tests/functional/frac_demo.cif raise
+moon run cmd/main -- tests/functional/sym_demo.cif
+moon run cmd/main -- tests/functional/frac_demo.cif raise
 ```
 
 ---
@@ -128,5 +128,12 @@ Get-Content $p | Where-Object { $_.StartsWith("Si") } | ForEach-Object { ($_ -sp
 | `verify_with_pymatgen.py` | 只做对称展开的对照，把 pymatgen 的展开结果打印出来给人看 |
 | `make_symmetry_cases.py` | **生成 `symop-*` 高对称用例**：用 spglib 把真实结构的对称性找回来，写出带完整对称操作的 CIF |
 | `gen_spacegroups.py` | **生成空间群查找表** `spacegroup_table.mbt`：从 spglib 数据库取全部 230 个空间群的对称操作（支持 `--dry-run` 只看统计） |
+| `check_consumable.py` | **检查"这个库真的能被外部依赖吗"**：在**仓库外面**的临时目录里造一个消费者模块，`import` 本库并调用公开接口（`--keep` 可保留临时目录供人工查看） |
 
-前两个需要 pymatgen：`pip install pymatgen`（`make_symmetry_cases.py` 与 `gen_spacegroups.py` 还需要 spglib）
+需要第三方库的：`pip install pymatgen`（`verify.py`、`verify_with_pymatgen.py`）；
+`make_symmetry_cases.py` 与 `gen_spacegroups.py` 还需要 spglib；
+`check_consumable.py` 不需要任何第三方库，但需要 `moon` 在 PATH 上
+
+`check_consumable.py` 为什么必须把消费者建在**仓库外面**：建在仓库里它就成了
+我们自己的一个包，那就不叫"外人"了，检查也就失去意义 —— 脚本里专门有一行
+判断临时目录是否落在仓库内，落在里面会直接报错退出。

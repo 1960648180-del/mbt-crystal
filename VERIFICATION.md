@@ -1,7 +1,13 @@
 # 验证报告
 
 **最后更新**：2026-10-15
-**当前结果**：一键验证 **37 项检查，通过 37，失败 0**
+**当前结果**（三条线全绿）：
+
+| 命令 | 结果 |
+|---|---|
+| `moon test` | **35 项单元测试全过** |
+| `python tests/tools/verify.py` | **37 项端到端检查，通过 37，失败 0** |
+| `python tests/tools/check_consumable.py` | **5 项检查，通过 5，失败 0**（一个仓库外的模块真的能用本库） |
 
 ```powershell
 python tests\tools\verify.py
@@ -28,7 +34,7 @@ python tests\tools\verify.py
 
 ## 二、四组验证
 
-### 第 1 组：真实 Materials Project 数据（12 个文件）
+### 第 1 组：真实 Materials Project 数据（13 个文件）
 
 **期望值 = 文件自带的 `_cell_volume`**（Materials Project 官方发布值）
 
@@ -56,7 +62,7 @@ python tests\tools\verify.py
 
 > 我们只打印 6 位小数，所以判定阈值取 $5\times10^{-6}$。
 
-### 第 2 组：对称展开（7 个用例）
+### 第 2 组：对称展开（8 个用例）
 
 **期望值 = pymatgen 独立计算。** pymatgen 的 `CifParser` 会自己按显式对称操作展开结构，
 我们拿它的原子数和分数坐标逐条比对。**这是本项目最核心的正确性证据。**
@@ -114,10 +120,33 @@ python tests\tools\verify.py
 
 ---
 
+### 第 5 组（单独脚本）：这个库能被外部依赖吗
+
+前四组看的都是"算得对不对"；这一组看的是"**别人用不用得上**"。
+
+在 MoonBit 里，一个包只能是【库】或【可执行程序】二选一。早期整包是 executable，
+结果别的 MoonBit 项目**在语法上根本 import 不了它** —— 于是有了
+`tests/tools/check_consumable.py`：它在**仓库外面**的临时目录里造一个消费者模块，
+用 `moon.work` 工作区把本库当普通依赖引入（官方机制，不需要先发布到 mooncakes.io），
+然后构造 `Lattice` 算体积、调 `spacegroup_ops(186)`、`parse_cif` 一份真实用例、
+构造 `Atom` 调 `expand_atoms` —— 全程只用公开接口。
+
+| 检查项 | 结果 |
+|---|---|
+| 外来的模块能编译并跑起来 | ✅ |
+| ① 能构造 `Lattice` 并算出 45.7283 | ✅ |
+| ② 能调 `spacegroup_ops(186)` 得到 12 条 | ✅ |
+| ③ 能调 `parse_cif` 解出 `Ga2 N2` / 4 个原子 | ✅ |
+| ④ 能构造 `Atom` 并调 `expand_atoms` | ✅ |
+
+> 脚本里专门有一行判断"临时目录有没有落在仓库内"，落在里面就直接报错退出 ——
+> 因为建在仓库里它就成了我们自己的一个包，那就不叫"外人"，检查也就没意义了。
+
 ## 三、怎么自己重跑
 
 ```powershell
-# 全部 35 项
+# 全部 37 项
+python tests/tools/check_consumable.py    # 库能不能被外部依赖（5 项）
 python tests\tools\verify.py
 
 # 只看对称展开的对照细节（会把 pymatgen 的展开结果打印出来给人看）

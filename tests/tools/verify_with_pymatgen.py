@@ -14,9 +14,9 @@ pymatgen 是 Materials Project 的官方工具链，全球材料计算领域的�
     python tests/tools/verify_with_pymatgen.py
 
 输出应当与下面这几条命令的输出一致：
-    moon run . -- tests/functional/sym_demo.cif
-    moon run . -- tests/functional/symmetry.cif
-    moon run . -- tests/functional/frac_demo.cif
+    moon run cmd/main -- tests/functional/sym_demo.cif
+    moon run cmd/main -- tests/functional/symmetry.cif
+    moon run cmd/main -- tests/functional/frac_demo.cif
 """
 
 import os

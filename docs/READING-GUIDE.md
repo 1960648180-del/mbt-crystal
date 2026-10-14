@@ -8,11 +8,15 @@
 
 ## 一、先搞清"哪些代码是谁的"
 
-仓库里一共 **3 个 `.mbt` 文件**：
+仓库里一共 **7 个 `.mbt` 文件**（拆成"库 + 命令行"两个包之后）：
 
 | 文件 | 行数 | 是谁的 |
 |---|---|---|
-| `main.mbt` | 980 | ✅ **自己写的** |
+| `cif.mbt` | 919 | ✅ **自己写的** —— 库主体（数据模型、几何、对称操作、对外 API） |
+| `spacegroup_table.mbt` | 241 | ✅ 自己的（但**内容是脚本生成的**，别手改） |
+| `cmd/main/main.mbt` | 98 | ✅ **自己写的** —— 命令行入口（读参数、读文件、打印） |
+| `cmd/main/format.mbt` | 88 | ✅ **自己写的** —— 排版（fmt / print_report…） |
+| `cif_wbtest.mbt` | 388 | ✅ **自己写的** —— 白盒单元测试（35 条） |
 | `vendor/crystal/crystal.mbt` | 1078 | 📦 借来的（Apache-2.0） |
 | `vendor/crystal/utils.mbt` | 348 | 📦 借来的 |
 
@@ -29,16 +33,21 @@
 
 ## 二、跟借来的代码只碰 6 个地方
 
-在 VS Code 里搜 `@bio.`（这是我们给借来的代码起的简称）能找到全部接触点：
+在 VS Code 里搜 `@bio.`（这是我们给借来的代码起的简称）能找到全部接触点。
+**这些接触点全在 `cif.mbt` 一个文件里**（大致就两处：`block_scalar` / `block_number`
+附近，以及对外入口 `parse_cif`）：
 
-| 行号 | 调用 | 它给什么 | 要注意什么 |
-|---|---|---|---|
-| 300 | `block.get_scalar(key)` | 一个值（字符串） | 找不到时给**空字符串 `""`**，不是 `None`、不报错 —— 所以才有 `block_scalar` 这层翻译 |
-| 355 | `block.get_loop(key)` | 一张表（表头 + 数据行） | 找不到时给空的；**行字段数 ≠ 表头数时那一行会被丢弃**（后面会整体错位） |
-| 630 | `block.get_loop(key)` | 同上 | 同上（这里只用表头） |
-| 650 | `block.get_loop(key)` | 同上 | 同上 |
-| 920 | `@bio.parse_cif(text)` | 几个数据块 | 文件**没有 `data_` 行**时返回空 |
-| 924 | `@bio.parse_cif(...)` | 同上 | 补救：补一行 `data_unnamed` 再试一次 |
+| 调用 | 它给什么 | 要注意什么 |
+|---|---|---|
+| `block.get_scalar(key)` | 一个值（字符串） | 找不到时给**空字符串 `""`**，不是 `None`、不报错 —— 所以才有 `block_scalar` 这层翻译 |
+| `block.get_loop(key)` | 一张表（表头 + 数据行） | 找不到时给空的；**行字段数 ≠ 表头数时那一行会被丢弃**（后面会整体错位） |
+| `block.get_loop(key)` | 同上 | 同上（这里只用表头） |
+| `block.get_loop(key)` | 同上 | 同上 |
+| `@bio.parse_cif(text)` | 几个数据块 | 文件**没有 `data_` 行**时返回空 |
+| `@bio.parse_cif(...)` | 同上 | 补救：补一行 `data_unnamed` 再试一次（在 `parse_cif` 里） |
+
+> 指南里**不再写具体行号**了 —— 拆库那次改动让行号全变了，写死行号只会误导人。
+> 用 `Ctrl+Shift+O`（大纲）或直接搜函数名定位，永远准。
 
 **要验证的就是这 6 处，不是那 1426 行。** 理由（重要）：
 
@@ -60,8 +69,8 @@
 | MoonBit 写法 | Python 里对应 | 坑在哪 |
 |---|---|---|
 | `let x = 1` **不可变**；要改必须 `let mut x = 1` | Python 变量都能改 | 忘了 `mut` 直接编译报错 |
-| 结构体字面量**必须标类型**：`let lat : Lattice = { a: 1.0, ... }` | dict/class 不用 | 不标类型编译器推断不出（`main.mbt` 里到处是 `: SymComponent` 就是这个原因） |
-| `expr catch { _ => 默认值 }` —— **catch 是表达式**，能直接赋值 | `try/except` 是语句 | 它最特别的地方，见 `parse_number`(160–175) |
+| 结构体字面量**必须标类型**：`let lat : Lattice = { a: 1.0, ... }` | dict/class 不用 | 不标类型编译器推断不出（`cif.mbt` 里到处是 `: SymComponent` 就是这个原因） |
+| `expr catch { _ => 默认值 }` —— **catch 是表达式**，能直接赋值 | `try/except` 是语句 | 它最特别的地方，见 `parse_number`（搜函数名就能找到） |
 | `'a'` 是 **Char**，`"a"` 是 **String**，两种不同类型 | 单双引号没区别 | 所以要写 `c.to_string()` |
 | 函数**必须写返回类型**：`-> Double` | 不用 | 不写会报 error 4074 |
 
@@ -120,7 +129,7 @@ fn block_scalar(block : @bio.CifBlock, key : String) -> String? {
 
 ```powershell
 git diff                    # 看我改了什么
-git checkout -- main.mbt    # 一键全部还原
+git checkout -- cif.mbt    # 一键全部还原
 ```
 
 **这是学语言最关键的心理前提** —— 有了安全网，你才敢主动把代码弄坏看会怎样。
@@ -139,7 +148,7 @@ git checkout -- main.mbt    # 一键全部还原
 | `frac_same` | 为什么 `0.9999` 和 `0.0` 是同一个位置？ |
 | `expand_atoms` | 如果去掉去重那一步，金刚石（192 条操作、1 个原子）会算出几个原子？ |
 
-**答案可以在 `main_wbtest.mbt` 里找** —— 那 30 个单元测试每条断言就是一道这样的题。
+**答案可以在 `cif_wbtest.mbt` 里找** —— 那 35 条单元测试每条断言就是一道这样的题。
 
 ---
 
@@ -147,7 +156,7 @@ git checkout -- main.mbt    # 一键全部还原
 
 | 想做的事 | 从哪开始 |
 |---|---|
-| 验证自己看懂没有 | `moon test`，然后读 `main_wbtest.mbt` 里对应的测试 |
-| 改一个小行为看效果 | 按第四节的实验列改，改完 `moon run . -- <cif>` |
-| 加一个功能 | 先加**测试**（在 `main_wbtest.mbt` 里写期望行为），再写实现 |
+| 验证自己看懂没有 | `moon test`，然后读 `cif_wbtest.mbt` 里对应的测试 |
+| 改一个小行为看效果 | 按第四节的实验列改，改完 `moon run cmd/main -- <cif>` |
+| 加一个功能 | 先加**测试**（在 `cif_wbtest.mbt` 里写期望行为），再写实现 |
 | 确认没弄坏别的 | `moon test` + `python tests/tools/verify.py` |

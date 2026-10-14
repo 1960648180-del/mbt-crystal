@@ -16,7 +16,7 @@ spglib 的空间群数据库。国际编号（1~230）在数据库里可能对�
 ────
 `spacegroup_table.mbt`：一个 `spacegroup_ops(number : Int) -> Array[String]` 函数，
 返回该空间群的对称操作字符串（形如 `"-y,x-y,z+1/3"`），可以直接交给
-`main.mbt` 里已有的 `parse_symop` 解析 —— 不重复实现解析逻辑。
+`cif.mbt` 里已有的 `parse_symop` 解析 —— 不重复实现解析逻辑。
 
 用法
 ────

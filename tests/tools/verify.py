@@ -61,11 +61,11 @@ def ng(label, detail=""):
 
 # ── 跑我们的程序，拿到输出 ──
 def run_cli(cif_path):
-    """跑 moon run . -- <cif>，返回 stdout+stderr 的合并文本。"""
+    """跑 moon run cmd/main -- <cif>，返回 stdout+stderr 的合并文本。"""
     env = dict(os.environ)
     env["GIT_TERMINAL_PROMPT"] = "0"
     p = subprocess.run(
-        ["moon", "run", ".", "--", cif_path],
+        ["moon", "run", "cmd/main", "--", cif_path],
         cwd=ROOT, env=env, capture_output=True, text=True,
         encoding="utf-8", errors="replace", timeout=180,
     )

@@ -1,6 +1,6 @@
 # 第三方代码说明（THIRD-PARTY NOTICES）
 
-本项目的主体代码（`main.mbt`、`moon.pkg`、`moon.mod`）为原创。
+本项目的主体代码（`cif.mbt`、`spacegroup_table.mbt`、`cmd/main/`、`moon.pkg`、`moon.mod`）为原创。
 `vendor/` 目录下有一部分代码来自第三方，按 Apache-2.0 第 4 条的要求在此声明来源。
 
 ---
@@ -41,7 +41,7 @@ MoonBit 中已是保留字），外加若干类型不匹配。
 
 vendored 的 `crystal.mbt` 提供的是**解析层**（切数据块、认 `loop_` 表、按列名取表、
 引号感知的分词、晶格/密度/化学键/空间群等结构）。它**不提供**显式对称操作的展开 ——
-这正是本项目自己实现的部分，也是 `main.mbt` 的核心：
+这正是本项目自己实现的部分，也是 `cif.mbt` 的核心：
 
 - `parse_symop`：把 `-x+y+1/2` 这样的操作字符串解析成 3 组 (整数系数, 平移量)
 - `apply_symop`：把操作作用在分数坐标上
@@ -49,7 +49,7 @@ vendored 的 `crystal.mbt` 提供的是**解析层**（切数据块、认 `loop_
 - `has_same_site` / `frac_same`：按周期性去重（`0.0` 与 `0.9999` 视为同一位置）
 - `expand_atoms`：把不对称单元展开成完整晶胞
 
-此外 `main.mbt` 还保留了 vendored 代码没有的能力：警告收集 + 出错策略
+此外 `cif.mbt` 还保留了 vendored 代码没有的能力：警告收集 + 出错策略
 （`ignore` / `warn` / `raise`）、化学式自检（与 `_chemical_formula_sum` 对账）。
 
 ## 5. 已知遗留问题
@@ -58,7 +58,7 @@ vendored 的 `crystal.mbt` 提供的是**解析层**（切数据块、认 `loop_
   `StringView::to_string` 等上游写法），目前**保持原样未改**，以便"改了哪里"一目了然。
 - vendored 的分词器要求**一行字段数 == 表头数**，不等就丢弃该行。手写 CIF 多写或
   少写一个 `.` 占位符会导致后续行整体错位；本项目在坐标解析处加了显式检查与提示
-  （见 `main.mbt` 的 `parse_coord`）。
+  （见 `cif.mbt` 的 `parse_coord`）。
 
 ## 6. 测试数据来源
 
