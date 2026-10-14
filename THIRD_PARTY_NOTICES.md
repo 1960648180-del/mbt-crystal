@@ -68,5 +68,8 @@ vendored 的 `crystal.mbt` 提供的是**解析层**（切数据块、认 `loop_
 
 - 选用材料：Si、GaN、AlN、ZnO、Ga₂O₃、SiC、金刚石（C）、BN —— 经典宽禁带材料
 - 用途：交叉校验晶胞体积（与 MP 官方 `_cell_volume` 字段逐位比对）
-- ⚠️ **公开分发前请确认** Materials Project 的数据条款（其数据通常采用 CC BY 4.0），
-  并按条款要求向 Materials Project 署名。若不便公开，换成自制的最小夹具即可。
+- **许可与署名**：Materials Project 的数据公开发布，采用 **CC BY 4.0**
+  （允许使用与再分发，**要求署名**）。本项目据此使用，并在此履行署名义务：
+  - **数据来源**：Materials Project —— <https://materialsproject.org>
+  - **建议引用**：Jain et al., *Commentary: The Materials Project*,
+    APL Materials **1**, 011002 (2013)

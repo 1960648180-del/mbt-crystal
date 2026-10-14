@@ -145,10 +145,15 @@ LICENSE                      Apache-2.0
 
 ---
 
-## 数据来源
+## 数据来源与署名
 
-`mp-149.cif` 与 `mp-reference/` 下的 CIF 是通过 Materials Project REST API 导出的真实结构数据，
-仅用于功能测试与数值比对。公开分发前请确认其数据条款（通常为 CC BY 4.0）并按条款署名。
+`mp-149.cif` 与 `mp-reference/` 下的 CIF 是通过 **Materials Project** REST API 导出的真实结构数据，
+仅用于功能测试与数值比对。
+
+> **数据来源**：Materials Project —— <https://materialsproject.org>
+> **许可证**：CC BY 4.0（允许使用与再分发，**要求署名**）。本项目在此履行署名义务。
+> **建议引用**：Jain et al., *Commentary: The Materials Project*,
+> APL Materials **1**, 011002 (2013).
 
 `tests/functional/symop-*.cif` 由 `tests/tools/make_symmetry_cases.py` 生成：
 拿上述真实结构，用 spglib 找回对称性，再写出带完整显式对称操作的 CIF。
