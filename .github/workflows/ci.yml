@@ -23,9 +23,12 @@ jobs:
       - name: 显示工具链版本
         run: moon version --all
 
-      - name: 拉取依赖
-        # .mooncakes/ 在 .gitignore 里（体积大、可重建），所以干净环境要先装一次
-        run: moon install
+      - name: 刷新包注册表索引
+        # 干净环境（比如一台全新的 CI 机器）里 ~/.moon/registry 是空的，
+        # 不刷新的话连 moonbitlang/x 都解析不到，会报
+        #   "module was not found in the registry"
+        # 顺便记一条教训：`moon install`（不带参数）已经废弃，别再用它拉依赖了。
+        run: moon update
 
       - name: 编译检查
         run: moon check
