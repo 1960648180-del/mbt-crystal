@@ -1,5 +1,7 @@
 # mbt-crystal
 
+[![CI](https://github.com/1960648180-del/mbt-crystal/actions/workflows/ci.yml/badge.svg)](https://github.com/1960648180-del/mbt-crystal/actions/workflows/ci.yml)
+
 用 [MoonBit](https://www.moonbitlang.com/) 写的 CIF 晶体结构工具：
 
 > **读取 CIF 里显式写出的对称操作，把「不对称单元」展开成完整晶胞。**
