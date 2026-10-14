@@ -5,8 +5,42 @@
 
 ## 怎么跑
 
+### 一键验证（推荐用这个）
+
 ```powershell
-# 跑一个用例（第二参数是出错策略，默认 warn）
+python tests/tools/verify.py
+```
+
+一条命令跑完 **27 项检查**，逐条打印 `[OK]` / `[FAIL]`，最后给总结。
+例如：
+
+```
+第 1 组：真实 Materials Project 数据（期望值 = 文件自带的 _cell_volume）
+  [OK]   mp-149.cif               V=40.329527      官方=40.32952685    警告=0
+  [OK]   GaN-P6_3mc.cif           V=45.728324      官方=45.72832359    警告=0
+第 2 组：对称展开（期望值 = pymatgen 独立计算）
+  [OK]   frac_demo.cif    原子数=3  坐标逐条一致（与 pymatgen）
+...
+结果：27 项检查，通过 27，失败 0
+```
+
+**四组检查，期望值分别来自**：
+
+| 组 | 内容 | 期望值来源 |
+|---|---|---|
+| 1 | 8 个真实 MP 文件 | **文件自带的 `_cell_volume`**（Materials Project 官方发布值） |
+| 2 | 3 个对称展开用例 | **pymatgen**（第三方独立实现） |
+| 3 | 4 个合成用例 | **从文件里的 `a` 自算**（立方 V = a³） |
+| 4 | 12 个错误用例 | ⚠️ 手写关键词 —— 只有这一组没办法 |
+
+> **为什么期望值要这么设计**：如果期望值由写代码的人自己写，他写错了测试也会通过 —— 
+> 那不叫验证，叫自证。所以前三组的期望值全部来自**独立来源**；
+> 只有第 4 组的"提示关键词"是手写的（因为那是在测我们自己的报错文案，没有第三方可对照）。
+
+### 单独跑一个用例
+
+```powershell
+# 第二参数是出错策略，默认 warn
 moon run . -- tests/functional/sym_demo.cif
 moon run . -- tests/functional/frac_demo.cif raise
 ```
@@ -73,11 +107,11 @@ Get-Content $p | Where-Object { $_.StartsWith("Si") } | ForEach-Object { ($_ -sp
 
 ---
 
-## `tools/` —— 独立验证脚本
+## `tools/` —— 验证脚本
 
-`verify_with_pymatgen.py` 用 **pymatgen**（Materials Project 的官方工具链）独立算一遍对称展开结果，
-用来对照我们的输出。需要先装 pymatgen：
+| 脚本 | 作用 |
+|---|---|
+| `verify.py` | **一键验证**（上面那个）。跑完 27 项检查并给出总结 |
+| `verify_with_pymatgen.py` | 只做对称展开的对照，把 pymatgen 的展开结果打印出来给人看 |
 
-```powershell
-python tests/tools/verify_with_pymatgen.py
-```
+两个都需要 pymatgen：`pip install pymatgen`
