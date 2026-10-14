@@ -37,6 +37,8 @@ jobs:
         run: moon test
 
       - name: 端到端验证（真实文件体积 + pymatgen 对称展开对照）
+        # spglib 这里显式装上：遇到"只给空间群编号"的文件时，pymatgen 要靠它
+        # 把对称操作找回来。少了它，那条对照会得出完全不同的原子数。
         run: |
-          python -m pip install --quiet pymatgen
+          python -m pip install --quiet pymatgen spglib
           python tests/tools/verify.py
