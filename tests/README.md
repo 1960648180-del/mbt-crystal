@@ -129,6 +129,7 @@ Get-Content $p | Where-Object { $_.StartsWith("Si") } | ForEach-Object { ($_ -sp
 | `make_symmetry_cases.py` | **生成 `symop-*` 高对称用例**：用 spglib 把真实结构的对称性找回来，写出带完整对称操作的 CIF |
 | `gen_spacegroups.py` | **生成空间群查找表** `spacegroup_table.mbt`：从 spglib 数据库取全部 230 个空间群的对称操作（支持 `--dry-run` 只看统计） |
 | `check_consumable.py` | **检查"这个库真的能被外部依赖吗"**：在**仓库外面**的临时目录里造一个消费者模块，`import` 本库并调用公开接口（`--keep` 可保留临时目录供人工查看） |
+| `check_settings.py` | **探查空间群"设置歧义"**：量化 230 个编号里有多少种设置、我们的表选的是哪一个、同一份输入用不同设置会不会算出不同结果。只打印结论，不做判断（需要 spglib） |
 
 需要第三方库的：`pip install pymatgen`（`verify.py`、`verify_with_pymatgen.py`）；
 `make_symmetry_cases.py` 与 `gen_spacegroups.py` 还需要 spglib；
