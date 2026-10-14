@@ -637,9 +637,25 @@ fn find_symop_key(block : @bio.CifBlock) -> String? {
   None
 }
 
-/// 读数据块里显式的对称操作
-/// 文件里没写就返回空数组（调用方按 P1 处理）
-fn parse_symops(
+/// 把一批「对称操作字符串」解析成结构体，同时数一下有几条解析失败
+fn parse_symop_texts(texts : Array[String]) -> (Array[SymOp], Int) {
+  let ops : Array[SymOp] = []
+  let mut failed = 0
+  for text in texts {
+    let parsed : SymOp? = Some(parse_symop(text)) catch {
+      _ => None
+    }
+    match parsed {
+      Some(op) => ops.push(op)
+      None => failed = failed + 1
+    }
+  }
+  (ops, failed)
+}
+
+/// 读数据块里**显式写出**的对称操作（从 loop_ 表里读）
+/// 文件里没写就返回空数组，交给上层去查空间群表
+fn parse_explicit_symops(
   block : @bio.CifBlock,
   warnings : Array[String],
 ) -> Array[SymOp] {
@@ -657,31 +673,78 @@ fn parse_symops(
     return []
   }
   // 分词器已经帮我们把引号剥掉了，所以 row[col] 直接就是 "-x, y, -z" 这样的干净文本
-  let ops : Array[SymOp] = []
-  let mut failed = 0
+  let texts : Array[String] = []
+  let mut missed = 0
   for row in rows {
     if row.length() > col {
-      let parsed : SymOp? = Some(parse_symop(row[col])) catch {
-        _ => None
-      }
-      match parsed {
-        Some(op) => ops.push(op)
-        None => failed = failed + 1
-      }
+      texts.push(row[col])
     } else {
-      failed = failed + 1
+      missed = missed + 1
     }
   }
-  if failed > 0 {
+  let (ops, failed) = parse_symop_texts(texts)
+  let bad = failed + missed
+  if bad > 0 {
     warnings.push(
       "有 " +
-      failed.to_string() +
+      bad.to_string() +
       " 条对称操作解析失败，已跳过（其余 " +
       ops.length().to_string() +
       " 条仍生效）",
     )
   }
   ops
+}
+
+/// 文件里**没有**显式列出对称操作时，按空间群编号查表
+/// 表在 spacegroup_table.mbt，由 tests/tools/gen_spacegroups.py 从 spglib 的数据库生成
+fn symops_from_spacegroup_number(
+  block : @bio.CifBlock,
+  warnings : Array[String],
+) -> Array[SymOp] {
+  let names : Array[String] = [
+    "_symmetry_Int_Tables_number",
+    "_space_group_IT_number",
+    "_symmetry_space_group_IT_number",
+  ]
+  for name in names {
+    match block_scalar(block, name) {
+      Some(_) => {
+        let number = ((block_number(block, name)) catch { _ => 0.0 }).to_int()
+        if number >= 1 && number <= 230 {
+          let (ops, failed) = parse_symop_texts(spacegroup_ops(number))
+          if ops.length() > 0 {
+            let mut msg = "文件里没有列出对称操作，改按空间群编号 " +
+              number.to_string() +
+              " 查表得到 " +
+              ops.length().to_string() +
+              " 条操作"
+            if failed > 0 {
+              msg = msg + "（另有 " + failed.to_string() + " 条查表结果解析失败）"
+            }
+            warnings.push(msg)
+            return ops
+          }
+        }
+      }
+      None => ()
+    }
+  }
+  []
+}
+
+/// 读数据块里的对称操作
+/// 优先用文件里显式列出的；没有就按空间群编号查表
+/// 两条路都没拿到就返回空数组（调用方按 P1 处理）
+fn parse_symops(
+  block : @bio.CifBlock,
+  warnings : Array[String],
+) -> Array[SymOp] {
+  let explicit = parse_explicit_symops(block, warnings)
+  if explicit.length() > 0 {
+    return explicit
+  }
+  symops_from_spacegroup_number(block, warnings)
 }
 
 /// 把一个对称操作用在分数坐标上，得到新的分数坐标

@@ -1,0 +1,29 @@
+# 功能用例：只给空间群编号，**不列出**对称操作
+# 测试点：程序应当按 _symmetry_Int_Tables_number = 186（P6_3mc）查表得到 12 条操作，
+#         展开结果必须和列全操作的 symop-gan-p63mc.cif 完全一致：
+#           不对称单元 2 个原子（Ga + N）→ 展开成 4 个原子
+#           V = 45.728323（立方/六方情形与 MP 官方 _cell_volume 一致）
+#         并且应当打印一条提示，说明操作是查表来的、不是文件里写的
+data_GaN_by_number
+_symmetry_space_group_name_H-M   P6_3mc
+_cell_length_a   3.18893040
+_cell_length_b   3.18893040
+_cell_length_c   5.19235725
+_cell_angle_alpha   90.00000000
+_cell_angle_beta    90.00000000
+_cell_angle_gamma   120.00000000
+_symmetry_Int_Tables_number   186
+_chemical_formula_structural   GaN
+_chemical_formula_sum   'Ga2 N2'
+_cell_volume   45.72832355
+_cell_formula_units_Z   2
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  2  0.33333333  0.66666667  0.99908371  1.0
+  N  N1  2  0.33333333  0.66666667  0.37591629  1.0
