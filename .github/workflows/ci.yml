@@ -1,0 +1,39 @@
+name: CI
+
+# 这个工作流的价值：把"在我机器上能跑"变成"换一台干净机器也能跑"。
+# 竞品/评委/未来的你，只要能看到这个绿勾，就知道验证是可复现的。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: # 允许手动点一下触发
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 MoonBit 工具链
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: 显示工具链版本
+        run: moon version --all
+
+      - name: 拉取依赖
+        # .mooncakes/ 在 .gitignore 里（体积大、可重建），所以干净环境要先装一次
+        run: moon install
+
+      - name: 编译检查
+        run: moon check
+
+      - name: 白盒单元测试（直接调包内私有函数）
+        run: moon test
+
+      - name: 端到端验证（真实文件体积 + pymatgen 对称展开对照）
+        run: |
+          python -m pip install --quiet pymatgen
+          python tests/tools/verify.py
