@@ -1,0 +1,21 @@
+// 命令行程序包
+//
+// 职责只有三件"外面的事"：解析命令行参数、读文件、把结果打出来。
+// 真正的解析与对称展开都在根包（库）里 —— 见 ../../cif.mbt。
+//
+// 为什么要把 CLI 单独分出来：MoonBit 里一个包只能是"库"或者"可执行程序"。
+// 之前整包标了 executable，结果**别的 MoonBit 项目根本无法依赖它**。
+// 现在根包是库（能被人 import），CLI 挪到这里，两边都不牺牲。
+//
+//   fs    -> 读文件、判断文件是否存在
+//   env   -> args（拿到命令行参数）
+//   double-> round（打印时四舍五入，纯粹为了好看）
+//   lib   -> 根包：CIF 解析 + 对称操作展开
+import {
+  "moonbitlang/x/fs",
+  "moonbitlang/core/env",
+  "moonbitlang/core/double",
+  "user/mbt-crystal" @lib,
+}
+
+pkgtype(kind: "executable")

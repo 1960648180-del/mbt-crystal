@@ -13,8 +13,11 @@
 ///      2. 警告收集 + 出错策略（ignore / warn / raise）
 ///      3. 化学式自检：展开后的组成 vs CIF 自带的 _chemical_formula_sum
 ///
-///  运行方法（在本文件所在目录）：
-///    moon run . -- <CIF 文件路径> [ignore|warn|raise]
+///  【本文件是库】根包 = 库，别的 MoonBit 项目可以 import 它并调用
+///  parse_cif / cell_volume / expand_atoms / spacegroup_ops 等接口
+///  （对外公开了哪些名字，直接看仓库根目录的 pkg.generated.mbti）。
+///  命令行程序在 cmd/main，跑法：
+///    moon run cmd/main -- <CIF 文件路径> [ignore|warn|raise]
 /// ================================================================
 
 /// ---------------------------------------------------------------
@@ -22,7 +25,7 @@
 /// ---------------------------------------------------------------
 
 /// 晶格参数：3 条边长 a/b/c + 3 个夹角 alpha/beta/gamma（单位：度）
-struct Lattice {
+pub(all) struct Lattice {
   a : Double
   b : Double
   c : Double
@@ -36,7 +39,7 @@ struct Lattice {
 ///             没有这一列就从 label 里推（"Si0" -> "Si"）
 ///   label   = CIF 里给这个原子起的名字，如 "Si0"
 ///   分数坐标 = 以晶胞的三个边为单位量出来的位置，所以都在 0~1 之间
-struct Atom {
+pub(all) struct Atom {
   element : String
   label : String
   x : Double
@@ -45,7 +48,7 @@ struct Atom {
 }
 
 /// 一个数据块解析出来的结果
-struct Crystal {
+pub(all) struct Crystal {
   name : String
   lattice : Lattice
   atoms : Array[Atom] // 展开对称性之后的完整晶胞
@@ -55,20 +58,20 @@ struct Crystal {
 
 /// 化学组成：元素名 + 对应个数
 /// 用两个"平行数组"表示，入门版不引入 Map，够用
-struct Composition {
+pub(all) struct Composition {
   names : Array[String]
   counts : Array[Int]
 }
 
 /// 对称操作里的"一个分量"，例如 "-x+y+1/2"
 /// 含义是 coef[0]*x + coef[1]*y + coef[2]*z + shift
-struct SymComponent {
+pub(all) struct SymComponent {
   coef : Array[Int] // 三个整数系数，分别对应 x / y / z
   shift : Double // 平移常数（一个分数，如 1/2）
 }
 
 /// 一条完整的对称操作 = 三个分量（分别给出新的 x / y / z）
-struct SymOp {
+pub(all) struct SymOp {
   parts : Array[SymComponent] // 长度固定为 3
 }
 
@@ -76,7 +79,7 @@ struct SymOp {
 ///   Ignore = 出错就跳过这一块，什么都不说
 ///   Warn   = 出错就记一条警告，程序继续（默认）
 ///   Raise  = 一遇到错就停下来报错
-enum OnError {
+pub(all) enum OnError {
   Ignore
   Warn
   Raise
@@ -94,7 +97,7 @@ let comp_tol : Double = 0.01
 
 /// 角度 -> 弧度
 /// 三角函数（cos 等）只认"弧度"，而 CIF 里的角度写的是"度"，必须先换算
-fn to_radian(deg : Double) -> Double {
+pub fn to_radian(deg : Double) -> Double {
   deg * pi / 180.0
 }
 
@@ -102,7 +105,7 @@ fn to_radian(deg : Double) -> Double {
 ///   V = a*b*c*sqrt(1 - cos²α - cos²β - cos²γ + 2·cosα·cosβ·cosγ)
 /// 立方、四方、六方、单斜都是它的特例，所以这一个公式就够了
 /// 注意：角度不合法（cell_metric ≤ 0）时返回 0，调用方应先检查并给出警告
-fn cell_volume(lat : Lattice) -> Double {
+pub fn cell_volume(lat : Lattice) -> Double {
   let metric = cell_metric(lat)
   if metric <= 0.0 {
     0.0
@@ -116,7 +119,7 @@ fn cell_volume(lat : Lattice) -> Double {
 /// 它必须 > 0 才凑得出真实晶胞；≤ 0 说明这组角度物理上不可能
 /// （体积会变成虚数，开根号没意义）
 /// 单独抽出来是为了能"先检查一下、再决定要不要警告"
-fn cell_metric(lat : Lattice) -> Double {
+pub fn cell_metric(lat : Lattice) -> Double {
   let ca = @math.cos(to_radian(lat.alpha))
   let cb = @math.cos(to_radian(lat.beta))
   let cg = @math.cos(to_radian(lat.gamma))
@@ -128,6 +131,14 @@ fn cell_metric(lat : Lattice) -> Double {
 ///     —— "切行、找 loop_ 表" 这类管道活已交给第四节里 vendor 的
 ///        分词器，这里只留我们真正用得上的几个
 /// ---------------------------------------------------------------
+
+/// 把小数转成字符串（保留 6 位后四舍五入，末尾多余的 0 自动省掉）
+/// 库里只用来拼给人看的警告文字（比如"角度不合法"那条要报出具体角度）
+/// CLI 里另有一份同样的实现负责打印表格 —— 两边各留一份是有意的：
+/// 库不该依赖"谁在打印"，打印也不该依赖库的内部工具
+fn fmt(x : Double) -> String {
+  (@double.round(x * 1000000.0) / 1000000.0).to_string()
+}
 
 /// 从 CIF 标签里取出元素符号：取开头连续的字母
 /// 例："Si0" -> "Si"，"Ga4+" -> "Ga"，"O12" -> "O"
@@ -257,7 +268,7 @@ fn count_of(atoms : Array[Atom], name : String) -> Int {
 
 /// 把原子列表统计成化学组成
 /// 只列出出现过的元素，并保持它们首次出现的顺序
-fn composition_of_atoms(atoms : Array[Atom]) -> Composition {
+pub fn composition_of_atoms(atoms : Array[Atom]) -> Composition {
   let names : Array[String] = []
   let counts : Array[Int] = []
   for atom in atoms {
@@ -271,7 +282,7 @@ fn composition_of_atoms(atoms : Array[Atom]) -> Composition {
 }
 
 /// 把化学组成打成可读的字符串，如 "Ga4 N4"
-fn composition_to_string(comp : Composition) -> String {
+pub fn composition_to_string(comp : Composition) -> String {
   let mut out = ""
   let mut i = 0
   while i < comp.names.length() {
@@ -598,7 +609,7 @@ fn parse_component(text : String) -> SymComponent raise Failure {
 }
 
 /// 解析一整条对称操作，例如 "x, 1/2-y, 1/2+z"
-fn parse_symop(text : String) -> SymOp raise Failure {
+pub fn parse_symop(text : String) -> SymOp raise Failure {
   let parts : Array[SymComponent] = []
   for piece in text.to_lower().split(",") {
     parts.push(parse_component(piece.trim().to_owned()))
@@ -816,7 +827,7 @@ fn has_same_site(
 
 /// 用对称操作把"不对称单元"里的原子展开成完整晶胞，并去掉重复位置
 /// 容差取 1e-4（对齐 pymatgen 的 site_tolerance 默认值，单位是分数坐标）
-fn expand_atoms(asym : Array[Atom], ops : Array[SymOp]) -> Array[Atom] {
+pub fn expand_atoms(asym : Array[Atom], ops : Array[SymOp]) -> Array[Atom] {
   let tol = 1.0e-4
   let out : Array[Atom] = []
   for atom in asym {
@@ -841,157 +852,50 @@ fn expand_atoms(asym : Array[Atom], ops : Array[SymOp]) -> Array[Atom] {
 }
 
 /// ---------------------------------------------------------------
-/// 六、打印结果
+/// 六、对外接口（给别人用的 API）
+///
+/// 上面那些函数默认是包内私有的 —— 这让内部可以随便重构，
+/// 但也意味着别的 MoonBit 项目根本调不到。下面标 pub 的才是对外的承诺。
+///
+/// 库本身**不打印任何东西**：排版输出是命令行程序（cmd/main）的事。
+/// 这样别人把库嵌进自己的程序时，不会被我们的排版风格绑架。
 /// ---------------------------------------------------------------
 
-/// 把小数转成字符串（保留 6 位后四舍五入，末尾多余的 0 会自动省掉）
-/// 纯粹为了打印整齐，不影响任何计算
-/// 为什么从 4 位提到 6 位：原来会把 1/3 打成 0.3333，
-/// 而 pymatgen 打的是 0.333333 —— 两边一比就显得我们"算不准"
-fn fmt(x : Double) -> String {
-  (@double.round(x * 1000000.0) / 1000000.0).to_string()
+/// 一次 CIF 解析的完整结果
+pub(all) struct CifResult {
+  /// 文件里一共有多少个数据块（data_ 开头的那种）
+  block_count : Int
+  /// 成功解析出来的结构，一块一个
+  crystals : Array[Crystal]
+  /// 过程中攒下的警告。小毛病不让程序罢工，都记在这儿
+  warnings : Array[String]
 }
 
-/// 在左边补 '0' 直到长度够（右边补位用内置的 pad_end）
-/// 例：pad_zeros_left("1", 3) -> "001"
-fn pad_zeros_left(s : String, width : Int) -> String {
-  let mut out = s
-  while out.length() < width {
-    out = "0" + out
-  }
-  out
-}
-
-/// 分数坐标按"固定 6 位小数"打印（对齐 pymatgen 的 %.6f 风格）
-/// 和 fmt 的区别：fmt 会省掉末尾的 0（0.1 打成 "0.1"），
-/// 这个一定会补齐 6 位（0.1 打成 "0.100000"）——
-/// 好处是坐标列宽度一致，也能直接和 pymatgen 的输出并排对比
-fn fmt_frac(x : Double) -> String {
-  let neg = x < 0.0
-  let v = if neg { -x } else { x }
-  let scaled = @double.round(v * 1000000.0)
-  let whole = (scaled / 1000000.0).floor()
-  let frac = (scaled - whole * 1000000.0).to_int()
-  let sign = if neg { "-" } else { "" }
-  sign + whole.to_int().to_string() + "." + pad_zeros_left(frac.to_string(), 6)
-}
-
-/// 整齐地打印一个结构的晶格参数、体积、原子列表
-fn print_report(crystal : Crystal) -> Unit {
-  let lat = crystal.lattice
-  let atoms = crystal.atoms
-  println("──────── 晶格参数（单位：Å / 度） ────────")
-  println("  a      = " + fmt(lat.a))
-  println("  b      = " + fmt(lat.b))
-  println("  c      = " + fmt(lat.c))
-  println("  alpha  = " + fmt(lat.alpha) + " 度  = " + fmt(to_radian(lat.alpha)) + " 弧度")
-  println("  beta   = " + fmt(lat.beta) + " 度  = " + fmt(to_radian(lat.beta)) + " 弧度")
-  println("  gamma  = " + fmt(lat.gamma) + " 度  = " + fmt(to_radian(lat.gamma)) + " 弧度")
-  println("")
-  println("──────── 晶胞体积 ────────")
-  println("  V = " + fmt(cell_volume(lat)) + " Å³")
-  println("")
-  println("──────── 对称性 ────────")
-  if crystal.symop_count > 0 {
-    println("  显式对称操作：" + crystal.symop_count.to_string() + " 个")
-    println("  不对称单元：" + crystal.asym_count.to_string() + " 个原子")
-    println("  → 展开成完整晶胞：" + atoms.length().to_string() + " 个原子")
-  } else {
-    println("  文件里没有写对称操作，按 P1 处理（原子原样输出）")
-  }
-  println("")
-  println("──────── 原子列表 ────────")
-  println("  共 " + atoms.length().to_string() + " 个原子")
-  println("  组成：" + composition_to_string(composition_of_atoms(atoms)))
-  println("  label      elem   x          y          z")
-  for atom in atoms {
-    let row = atom.label.pad_end(11, ' ') +
-      atom.element.pad_end(7, ' ') +
-      fmt_frac(atom.x).pad_end(12, ' ') +
-      fmt_frac(atom.y).pad_end(12, ' ') +
-      fmt_frac(atom.z)
-    println("  " + row)
-  }
-}
-
-/// 把所有攒下来的警告一次性打出来
-fn print_warnings(warnings : Array[String]) -> Unit {
-  if warnings.length() == 0 {
-    return
-  }
-  println("")
-  println("──────── 警告（" + warnings.length().to_string() + " 条） ────────")
-  for w in warnings {
-    println("  ⚠ " + w)
-  }
-}
-
-/// ---------------------------------------------------------------
-/// 七、主程序
-/// ---------------------------------------------------------------
-
-/// 安全读文件：读不了就返回空字符串（不让程序直接崩掉）
-fn read_file_safe(path : String) -> String {
-  @fs.read_file_to_string(path) catch {
-    _ => ""
-  }
-}
-
-/// 把命令行里的策略字符串转成枚举，认不出来就用默认的 Warn
-fn parse_on_error(text : String) -> OnError {
-  if text == "ignore" {
-    Ignore
-  } else if text == "raise" {
-    Raise
-  } else {
-    Warn
-  }
-}
-
-/// 程序入口
-fn main {
-  // 1) 检查命令行参数
-  let args = @env.args()
-  if args.length() < 2 {
-    println("用法：moon run . -- <CIF 文件路径> [ignore|warn|raise]")
-    println("示例：moon run . -- mp-149.cif")
-    println("      moon run . -- mp-149.cif warn   （出错策略，默认 warn）")
-    return
-  }
-  let path = args[1]
-  let on_error = if args.length() >= 3 {
-    parse_on_error(args[2])
-  } else {
-    Warn
-  }
-
-  // 2) 文件不存在 -> 明确提示
-  if !(@fs.path_exists(path)) {
-    println("错误：找不到文件 -> " + path)
-    return
-  }
-
-  // 3) 读文件失败 -> 明确提示
-  let text = read_file_safe(path)
-  if text == "" {
-    println("错误：文件是空的，或者没有权限读取 -> " + path)
-    return
-  }
-
-  // 4) 交给 vendor 进来的分词器切数据块 -> 逐块解析
+/// 解析一份 CIF 文本，返回所有数据块对应的结构
+///
+/// on_error 决定"某个数据块解析失败"时怎么办：
+///   Ignore —— 跳过这一块，安静继续
+///   Warn   —— 跳过这一块，但记一条警告（建议的默认值）
+///   Raise  —— 直接把错误抛给调用者
+///
+/// 用法示例：
+///   let result = parse_cif(text, Warn) catch { _ => ... }
+///   for crystal in result.crystals {
+///     println(crystal.atoms.length())
+///   }
+///
+/// 文件里没写 data_ 行不会直接失败 —— 会按一个匿名数据块处理，
+/// 并在 warnings 里留一条记录（很多手写的 CIF 都会漏掉这一行）
+pub fn parse_cif(text : String, on_error : OnError) -> CifResult raise Failure {
   let warnings : Array[String] = []
   let mut blocks = @bio.parse_cif(text)
   if blocks.length() == 0 {
-    // CIF 规范要求文件里有 data_ 行，但手写的文件常会漏掉。
-    // 补一行再解析一次，让它仍能被当成一个匿名数据块处理（更宽容）
     let retry = @bio.parse_cif("data_unnamed\n" + text)
     if retry.length() > 0 {
       warnings.push("文件里没有 data_ 行，按单个匿名数据块处理")
       blocks = retry
     }
   }
-  println("共找到 " + blocks.length().to_string() + " 个数据块")
-
   let crystals : Array[Crystal] = []
   for block in blocks {
     try {
@@ -1001,43 +905,15 @@ fn main {
       Failure(msg) => {
         let full = "数据块 [" + block.name + "] 解析失败：" + msg
         match on_error {
-          Raise => {
-            println("错误：" + full)
-            return
-          }
+          Raise => raise Failure(full)
           Warn => warnings.push(full)
           Ignore => ()
         }
       }
     }
   }
-
-  // 5) 一块都没成功 -> 明确报错（对齐 pymatgen 的 "no structures" 行为）
-  if crystals.length() == 0 {
-    println("错误：没有解析出任何结构（文件可能不是有效的 CIF）")
-    print_warnings(warnings)
-    return
-  }
-
-  // 6) 逐个打印
-  let n = crystals.length()
-  let mut i = 0
-  while i < n {
-    let crystal = crystals[i]
-    if n > 1 {
-      println("")
-      println(
-        "════════ 数据块 " +
-        (i + 1).to_string() +
-        "/" +
-        n.to_string() +
-        "：" +
-        crystal.name +
-        " ════════",
-      )
-    }
-    print_report(crystal)
-    i = i + 1
-  }
-  print_warnings(warnings)
+  { block_count: blocks.length(), crystals: crystals, warnings: warnings }
 }
+
+// 命令行入口已移到 cmd/main/main.mbt —— 库这边不读文件、也不打印。
+// 跑法：moon run cmd/main -- <CIF 文件路径> [ignore|warn|raise]

@@ -1,0 +1,79 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "user/mbt-crystal"
+
+// Values
+pub fn cell_metric(Lattice) -> Double
+
+pub fn cell_volume(Lattice) -> Double
+
+pub fn composition_of_atoms(Array[Atom]) -> Composition
+
+pub fn composition_to_string(Composition) -> String
+
+pub fn expand_atoms(Array[Atom], Array[SymOp]) -> Array[Atom]
+
+pub fn parse_cif(String, OnError) -> CifResult raise Failure
+
+pub fn parse_symop(String) -> SymOp raise Failure
+
+pub fn spacegroup_ops(Int) -> Array[String]
+
+pub fn to_radian(Double) -> Double
+
+// Errors
+
+// Types and methods
+pub(all) struct Atom {
+  element : String
+  label : String
+  x : Double
+  y : Double
+  z : Double
+}
+
+pub(all) struct CifResult {
+  block_count : Int
+  crystals : Array[Crystal]
+  warnings : Array[String]
+}
+
+pub(all) struct Composition {
+  names : Array[String]
+  counts : Array[Int]
+}
+
+pub(all) struct Crystal {
+  name : String
+  lattice : Lattice
+  atoms : Array[Atom]
+  asym_count : Int
+  symop_count : Int
+}
+
+pub(all) struct Lattice {
+  a : Double
+  b : Double
+  c : Double
+  alpha : Double
+  beta : Double
+  gamma : Double
+}
+
+pub(all) enum OnError {
+  Ignore
+  Warn
+  Raise
+}
+
+pub(all) struct SymComponent {
+  coef : Array[Int]
+  shift : Double
+}
+
+pub(all) struct SymOp {
+  parts : Array[SymComponent]
+}
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,138 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "user/mbt-crystal/vendor/crystal"
+
+// Values
+pub fn atoms_to_cartesian(CrystalStructure) -> Array[CrystalAtom]
+
+pub fn atoms_to_fractional(CrystalStructure) -> Array[CrystalAtom]
+
+pub fn cartesian_to_fractional(UnitCell, Double, Double, Double) -> (Double, Double, Double)
+
+pub fn center_of_mass(CrystalStructure) -> (Double, Double, Double)
+
+pub fn char_at(String, Int) -> String
+
+pub fn cif_block_to_crystal(CifBlock) -> CrystalStructure
+
+pub fn contains(String, String) -> Bool
+
+pub fn crystal_atom_distance(CrystalStructure, String, String) -> Double?
+
+pub fn crystal_density(UnitCell, Int, Double) -> Double
+
+pub fn crystal_sample_cif() -> String
+
+pub fn crystal_sample_structure() -> CrystalStructure
+
+pub fn crystal_summary(CrystalStructure) -> CrystalSummary
+
+pub fn format_crystal_structure(CrystalStructure) -> String
+
+pub fn fractional_to_cartesian(UnitCell, Double, Double, Double) -> (Double, Double, Double)
+
+pub fn lookup_space_group(Int) -> SpaceGroup
+
+pub fn orthogonalization_matrix(UnitCell) -> Array[Array[Double]]
+
+pub fn parse_cif(String) -> Array[CifBlock]
+
+pub fn parse_comma_list(String) -> Array[String]
+
+pub fn parse_double(String) -> Double?
+
+pub fn parse_int(String) -> Int
+
+pub fn parse_semicolon_list(String) -> Array[String]
+
+pub fn split_by_char(String, Int) -> Array[String]
+
+pub fn split_by_tab(String) -> Array[String]
+
+pub fn starts_with(String, Int, String) -> Bool
+
+pub fn substring(String, Int, Int) -> String
+
+pub fn to_lowercase(String) -> String
+
+pub fn trim(String) -> String
+
+pub fn unit_cell_volume(UnitCell) -> Double
+
+// Errors
+
+// Types and methods
+pub struct CifBlock {
+  name : String
+  items : Map[String, CifDataItem]
+}
+pub fn CifBlock::get_loop(Self, String) -> (Array[String], Array[Array[String]])
+pub fn CifBlock::get_scalar(Self, String) -> String
+pub fn CifBlock::keys(Self) -> Array[String]
+pub fn CifBlock::new(name~ : String) -> Self
+pub fn CifBlock::set_loop(Self, String, Array[String], Array[Array[String]]) -> Unit
+pub fn CifBlock::set_scalar(Self, String, String) -> Unit
+
+pub enum CifDataItem {
+  CifScalar(String)
+  CifLoop(Array[String], Array[Array[String]])
+}
+
+pub struct CrystalAtom {
+  label : String
+  element : String
+  x : Double
+  y : Double
+  z : Double
+  occupancy : Double
+  is_fractional : Bool
+}
+pub fn CrystalAtom::new(label~ : String, element~ : String, x~ : Double, y~ : Double, z~ : Double, occupancy? : Double, is_fractional? : Bool) -> Self
+
+pub struct CrystalBond {
+  atom1 : String
+  atom2 : String
+  bond_type : String
+  distance : Double
+}
+pub fn CrystalBond::new(atom1~ : String, atom2~ : String, bond_type? : String, distance? : Double) -> Self
+
+pub struct CrystalStructure {
+  name : String
+  cell : UnitCell
+  space_group : SpaceGroup
+  atoms : Array[CrystalAtom]
+  bonds : Array[CrystalBond]
+  z : Int
+  molecular_weight : Double
+}
+pub fn CrystalStructure::new(name~ : String, cell~ : UnitCell, space_group~ : SpaceGroup, atoms~ : Array[CrystalAtom], bonds~ : Array[CrystalBond], z? : Int, molecular_weight? : Double) -> Self
+
+pub struct CrystalSummary {
+  name : String
+  n_atoms : Int
+  n_bonds : Int
+  volume : Double
+  density : Double
+  space_group : String
+  z : Int
+}
+
+pub struct SpaceGroup {
+  number : Int
+  symbol : String
+}
+pub fn SpaceGroup::new(number~ : Int, symbol~ : String) -> Self
+
+pub struct UnitCell {
+  a : Double
+  b : Double
+  c : Double
+  alpha : Double
+  beta : Double
+  gamma : Double
+}
+pub fn UnitCell::new(a~ : Double, b~ : Double, c~ : Double, alpha~ : Double, beta~ : Double, gamma~ : Double) -> Self
+
+// Type aliases
+
+// Traits

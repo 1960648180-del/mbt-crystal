@@ -9,7 +9,7 @@
 /// ================================================================
 
 /// 按国际编号（1~230）取对称操作字符串；未知编号返回空数组
-fn spacegroup_ops(number : Int) -> Array[String] {
+pub fn spacegroup_ops(number : Int) -> Array[String] {
   match number {
     1 => ["x,y,z"]
     2 => ["x,y,z", "-x,-y,-z"]
